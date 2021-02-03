@@ -1,6 +1,6 @@
 ---
-title: "Exploring World Bank Data"
-author: "Your name"
+title: "HW 4, pt. 2: Exploring World Bank Data"
+author: "Julia Du"
 output: github_document
 ---
 

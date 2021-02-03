@@ -1,6 +1,6 @@
 ---
-title: "Programming Exercises"
-author: "Your name"
+title: "HW 4, pt. 1: Programming Exercises"
+author: "Julia Du"
 output: github_document
 ---
 
