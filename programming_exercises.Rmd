@@ -8,6 +8,21 @@ output: github_document
 
 ```{r}
 library(tidyverse)
+library(knitr)
+library(ggthemes)
+
+theme_set(theme_minimal())
+
+#not relevant - class exercises
+mean_mtcars <- vector("numeric", length = ncol(mtcars))
+for(i in seq_along(mtcars)) {
+  output[[i]] <- mean(mtcars[[i]])
+}
+
+max_diamonds <- vector("numeric", length = ncol(diamonds))
+for(i in seq_along(diamonds)) {
+  output[[i]] <- max(diamonds[[i]])
+}
 ```
 
 ## Compute the number of unique values in each column of `iris`
@@ -15,13 +30,24 @@ library(tidyverse)
 ### Using a `for` loop
 
 ```{r}
+as_tibble(iris)
 
+unique_iris <- vector("numeric", length = ncol(iris)) 
+names(unique_iris) <- names(iris)
+for(i in seq_along(iris)) {
+  unique_iris[[i]] <- length(unique(iris[[i]]))
+}
+#alternative body is: n_distinct(iris[[i]])
+
+unique_iris
 ```
 
 ### Using a `map` function
 
 ```{r}
-
+iris %>%
+  map_int(n_distinct)
+#alternative is map_int(iris, function(x) length(unique(x)))
 ```
 
 ## Calculate the square of each element in vector `x`
@@ -34,13 +60,20 @@ x
 ### Using a `for` loop
 
 ```{r}
-
+squaredx <- vector("numeric", length = length(x)) 
+for(i in seq_along(x)) {    #could also use for(i in 1:length(x))
+  squaredx[[i]] <- (x[[i]]) ^2
+}
+squaredx
 ```
 
 ### Using a `map` function
 
 ```{r}
-
+x %>%
+map_dbl(~(.x)^2) 
+#alternative is map_dbl(x, function(x) x^2)
+#my tilde in the 2nd line takes the place of function(x) in 3rd line
 ```
 
 ## Write a function to calculate length of sides in a right-triangle using the Pythagorean Theorem
