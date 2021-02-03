@@ -79,6 +79,18 @@ map_dbl(~(.x)^2)
 ## Write a function to calculate length of sides in a right-triangle using the Pythagorean Theorem
 
 ```{r}
+#pythagorean
+pyth1 <- function(a, b, c){
+  #stopifnot(is.numeric(a))
+  #stopifnot(missing(a | b | c)) #if_else?
+  if(missing(c)) {
+   sqrt(a^2 + b^2) 
+  } else if(missing(a)) {
+    sqrt(c^2 - b^2)
+  } else if(missing(b)) {
+  sqrt(c^2 - a^2)
+  }
+}
 
 ```
 
