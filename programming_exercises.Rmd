@@ -80,7 +80,53 @@ map_dbl(~(.x)^2)
 
 ```{r}
 #pythagorean
-pyth1 <- function(a, b, c){
+pyth1 <- function(sides) {
+  if(length(sides) != 2) {
+    stop("provide only 2 values")
+  }
+   if(!is.numeric(sides)) {
+    stop("sides must be numeric") 
+  } else if (is.null(sides[a])) {
+    sqrt(c**2 - b**2)
+  } else if (is.null(sides[b])) {
+    sqrt(c**2 - a**2)
+  } else if (is.null(sides[c])) {
+    sqrt(a**2 + b**2)
+  }
+}
+ 
+#from Google. https://rpubs.com/avbernat/617275
+  pythagorean <- function(triangle) {
+  a <- triangle[[1]]
+  b <- triangle[[2]]
+  c <- triangle[[3]]
+  # if(length(triangle) != 2) {
+   # stop("provide only 2 values")
+  #}
+  # if(!is.numeric(triangle)) {
+   # stop("sides must be numeric") 
+   #}
+  if (is.character(a)) {
+    side <- sqrt(c**2 - b**2)
+  }
+  else if (is.character(b)) {
+    side <- sqrt(c**2 - a**2)
+  }
+  else if (is.character(c)) {
+    side <- sqrt(a**2 + b**2)
+  }
+  return(side)
+}
+  
+  
+  
+  triangle1 = list(2,3, NA)
+  
+  
+  
+  
+  
+  a, b, c){
   #stopifnot(is.numeric(a))
   #stopifnot(missing(a | b | c)) #if_else?
   if(missing(c)) {
