@@ -8,6 +8,9 @@ output: github_document
 
 ```{r}
 library(tidyverse)
+library(ggthemes)
+library(ggridges)
+library(viridis)
 theme_set(theme_minimal())
 
 #don't do iteration w/in function, dummy!!
@@ -62,28 +65,61 @@ I am focusing my analysis on Japan, China, & S. Korea.
 ```{r}
 focus_data <- masterdata %>%
   filter(country_name %in% c("Japan", "China", "Korea, Rep.")) %>%
-  mutate(country_name = if_else(country_name == "Korea, Rep.", "South Korea", country_name))
+  mutate(country_name = if_else(country_name == "Korea, Rep.", "South Korea", country_name)) %>%
+  rename(totalpopgrow = `SP.POP.GROW`, urbpopgrow = `SP.URB.GROW`, popdensity = `EN.POP.DNST`, life_expectancy = `SP.DYN.LE00.IN`)
+
+### mostly looking at population variables
 
 #comparing population growth across countries
 ggplot(data = focus_data) +
-  geom_point(mapping = aes(x = year, y = SP.POP.GROW/100, color = country_name, group = 1)) +
-#  geom_line(mapping = aes(x = year, y = SP.POP.GROW/100, color = country_name, group = 3)) + #hmm..... confusion
-    labs(title = "Population Growth, 1960-2020", x = "Year", y = "Percent of annual population growth", caption = "Source: The World Bank", color = "Country") +
+  geom_point(mapping = aes(x = year, y = totalpopgrow/100, color = country_name, group = 1)) +
+    labs(title = "Total Population Growth, 1960-2020", x = "Year", y = "Percent of total annual population growth", caption = "Source: The World Bank", color = "Country") +
   scale_x_discrete(breaks = seq(1960, 2020, by = 10)) +
   scale_y_continuous(labels = scales::percent)
 
+#same as above, but with a line!!!
+ggplot(data = focus_data) +
+  geom_line(mapping = aes(x = year, y = totalpopgrow/100, color = country_name, group = country_name)) + 
+    labs(title = "Total Population Growth, 1960-2020", x = "Year", y = "Percent of total annual population growth", caption = "Source: The World Bank", color = "Country") +
+  scale_x_discrete(breaks = seq(1960, 2020, by = 10)) +
+  scale_y_continuous(labels = scales::percent)
+
+#compare urban vs total pop growth across countries
 ggplot(data = focus_data, mapping = aes(x = year)) +
-  geom_line(mapping = aes(y = SP.POP.GROW/100, color = "Total population growth"), group = 1) +
-  geom_line(mapping = aes(y = SP.URB.GROW/100, color = "Urban population growth"), group = 1) +
+  geom_line(mapping = aes(y = totalpopgrow/100, color = "Total population growth"), group = 1) +
+  geom_line(mapping = aes(y = urbpopgrow/100, color = "Urban population growth"), group = 1) +
   facet_grid(country_name ~.) +
-    labs(title = "Population Growth, 1960-2020", x = "Year", y = "Percent of annual population growth", caption = "Source: The World Bank", color = "Legend") +
+    labs(title = "Urban & Total Population Growth, 1960-2020", x = "Year", y = "Percent of annual population growth", caption = "Source: The World Bank", color = "Legend") +
   scale_x_discrete(breaks = seq(1960, 2020, by = 10)) +
   scale_y_continuous(labels = scales::percent) +
   theme(legend.position = "bottom")
+```
 
-#create scatter plot comparing urban pop growth to population density
-ggplot(focus_data, mapping = aes(x = SP.DYN.LE00.IN, y = EN.POP.DNST, color = country_name)) +
+```{r}
+## looking @ life expectancy
+
+#boxplot of life expectancy across country
+ggplot(data = focus_data, mapping = aes(x = country_name, y = life_expectancy, fill = country_name)) +
+  geom_violin() +
+  geom_boxplot(width=0.1, color="grey", alpha=0.2) +
+    labs(title = "Life expectancy in selected East Asian countries", x = "", y = "Life expectancy at birth (yrs)", caption = "Source: The World Bank", fill = "Country") +
+  scale_y_continuous(limits = c(40, 90)) +
+  theme(legend.position = "none")
+#Japan has the highest life expectancy. Korea and China seem to have similar median life expectancies, but China is much more left skewed. 
+
+ggplot(data = focus_data, mapping = aes(x = life_expectancy, y = country_name, fill = country_name)) +
+  geom_density_ridges(alpha = 0.6) +
+  scale_fill_viridis(discrete = TRUE) +
+  scale_color_viridis(discrete = TRUE) +
+    labs(title = "Life expectancy in selected East Asian countries", x = "Life expectancy at birth (yrs)", y = "", caption = "Source: The World Bank", fill = "Country") +
+#  scale_x_continuous(limits = c(40, 100)) +
+  theme(legend.position = "none")
+
+#create scatter plot comparing life expectancy to population density
+ggplot(focus_data, mapping = aes(x = life_expectancy, y = popdensity, color = country_name)) +
   geom_line() 
+
+
 ```
 
 ## Session info
