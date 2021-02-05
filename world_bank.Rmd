@@ -98,6 +98,9 @@ ggplot(data = focus_data, mapping = aes(x = year)) +
 ```{r}
 ## looking @ life expectancy
 
+## tbh not sure if it's the best idea to make a boxplot/ridgeplot of life expectancy & pop density cuz it's ordered by time
+# if really wanna try hard: could filter N American & E Asian countries. mutate var to indicate which region they belong to. then compare their life expectancies/pop densities (& don't think i'd use yr as a factor there)
+
 #boxplot of life expectancy across country
 ggplot(data = focus_data, mapping = aes(x = country_name, y = life_expectancy, fill = country_name)) +
   geom_violin() +
@@ -115,10 +118,24 @@ ggplot(data = focus_data, mapping = aes(x = life_expectancy, y = country_name, f
 #  scale_x_continuous(limits = c(40, 100)) +
   theme(legend.position = "none")
 
+#try pop density
+ggplot(data = focus_data, mapping = aes(x = popdensity, y = country_name, fill = country_name)) +
+  geom_density_ridges(alpha = 0.6, stat="binline", bins=20) +
+  scale_fill_viridis(discrete = TRUE) +
+  scale_color_viridis(discrete = TRUE) +
+    labs(title = "Population density in selected East Asian countries", x = "Population density", y = "", caption = "Source: The World Bank", fill = "Country") +
+#  scale_x_continuous(limits = c(40, 100)) +
+  theme(legend.position = "none")
+
 #create scatter plot comparing life expectancy to population density
 ggplot(focus_data, mapping = aes(x = life_expectancy, y = popdensity, color = country_name)) +
   geom_line() 
 
+ggplot(focus_data, mapping = aes(x = year, y = popdensity, color = country_name, group = country_name)) +
+  geom_line() 
+
+ggplot(focus_data, mapping = aes(x = year, y = life_expectancy, color = country_name, group = country_name)) +
+  geom_line() 
 
 ```
 
