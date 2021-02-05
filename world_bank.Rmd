@@ -8,11 +8,31 @@ output: github_document
 
 ```{r}
 library(tidyverse)
+
+#don't do iteration w/in function, dummy!!
+mean_mtcars <- vector("numeric", length = ncol(mtcars))
+for(i in seq_along(mtcars)) {
+  output[[i]] <- mean(mtcars[[i]])
+}
+
+max_diamonds <- vector("numeric", length = ncol(diamonds))
+for(i in seq_along(diamonds)) {
+  output[[i]] <- max(diamonds[[i]])
+}
 ```
 
 ## Write a function to import the data files
 
 ```{r}
+import_tidydata <- function(file_name) {
+ path = "~data_world_bank/." 
+ read_csv(file = path)
+}
+
+
+#the function should import 1 single csv. it then should tidy the data.
+#i will then create an iteration, where my function becomes part of the body
+
 ```
 
 ## Import the data
