@@ -24,54 +24,42 @@ for(i in seq_along(diamonds)) {
 ## Write a function to import the data files
 
   I'm interested in the following four variables: 
-    1. "GDP per capita (current US$)" = NY.GDP.PCAP.CD
-    2. "Government expenditure on education, total (% of government expenditure)" = SE.XPD.TOTL.GB.ZS
-    3. "Military expenditure (% of general government expenditure) = 
-    4. "Domestic general government health expenditure (% of general government expenditure) = SH.XPD.GHED.GE.ZS
     
-    
-    3. "Life expectancy at birth, total (years)" = SP.DYN.LE00.IN
-    4. "Literacy rate, adult female" 
-    5. "Literacy rate, adult male" 
-    6. "Literacy rate, adult total" = SE.ADT.LITR.ZS
-    
+    1. Population growth (annual %) = SP.POP.GROW
+    2. Urban population growth (annual %) = SP.URB.GROW
+    3. Population density (people per sq. km of land area) = EN.POP.DNST
+    4. "Life expectancy at birth, total (years)" = SP.DYN.LE00.IN
 
 ```{r}
 import_tidydata <- function(file_name) {
  path = "./data_world_bank/"  #why this & not "~/data_world_bank/"
  read_csv(paste0(path, file_name), skip = 4) %>%
    rename(country_name = `Country Name`, country_code = `Country Code`, indicator_name = `Indicator Name`, indicator_code = `Indicator Code`) %>%
+   filter(indicator_code %in% c("SP.POP.GROW", "SP.URB.GROW", "EN.POP.DNST", "SP.DYN.LE00.IN")) %>%
+   #selecting chosen 4 variables: population growth, urban population growth, population density, & life expectancy at birth. doing it here & not in final select of function so that function runs faster
    select(-c(country_code, indicator_name)) %>%
- #  filter(indicator_code %in% c("NY.GDP.PCAP.CD", "SE.XPD.TOTL.GB.ZS", "SP.DYN.LE00.IN", "SE.ADT.LITR.ZS")) %>%
-   #selecting chosen 4 variables: GDP per capita, gov't expenditure on education, life expectancy at birth, literacy rate, adult total. doing it here & not in final select of function so that function runs faster
    pivot_longer(cols = `1960`:`2019`, names_to = "year", values_to = "values") %>%
    pivot_wider(names_from = indicator_code, values_from = values) %>%
-   select(country_name, year, NY.GDP.PCAP.CD, SE.XPD.TOTL.GB.ZS, SP.DYN.LE00.IN, SE.ADT.LITR.ZS)
-# selecting chosen 4 variables: GDP per capita, gov't expenditure on education, life expectancy at birth, literacy rate (adult total).
+   select(-X65)
  }
 
-#sampledfname <- "API_ABW_DS2_en_csv_v2_1226885.csv"
-#sampledf <- import_tidydata(sampledfname)
-
-list.files(path = "./data_world_bank/") %>%
-map(import_tidydata) %>%
-  reduce(rbind)
-
-#the function should import 1 single csv. it then should tidy the data.
-#i will then create an iteration, where my function becomes part of the body
-
-#let's focus on "GDP per capita (current US$)", "gov't expenditure on education, total (% of GDP)", "life expectancy at birth, total (years)", "literacy rate, adult female", "literacy rate, adult male", "literacy rate, adult total"
-
-#"birth rate, crude (per 1,000 people)" & "death rate, crude (per 1,000 people)"
+#This is what I used to check my work while creating the function.
+sampledfname <- "API_ABW_DS2_en_csv_v2_1226885.csv"
+sampledf <- import_tidydata(sampledfname)
 ```
 
 ## Import the data
 
 ```{r}
+masterdata <- list.files(path = "./data_world_bank/", pattern = "\\.csv$") %>% #could also write "*.csv"
+map(import_tidydata) %>%
+  reduce(rbind)
 ```
 
 ## Explore the data
 ```{r}
+focus_data <- masterdata %>%
+  filter(country_name %in% c("Japan", "China", "Korea, Rep.")) #focusing analysis on Japan, China, & S. Korea
 ```
 
 ## Session info
