@@ -8,6 +8,7 @@ output: github_document
 
 ```{r}
 library(tidyverse)
+theme_set(theme_minimal())
 
 #don't do iteration w/in function, dummy!!
 mean_mtcars <- vector("numeric", length = ncol(mtcars))
@@ -57,9 +58,32 @@ map(import_tidydata) %>%
 ```
 
 ## Explore the data
+I am focusing my analysis on Japan, China, & S. Korea.
 ```{r}
 focus_data <- masterdata %>%
-  filter(country_name %in% c("Japan", "China", "Korea, Rep.")) #focusing analysis on Japan, China, & S. Korea
+  filter(country_name %in% c("Japan", "China", "Korea, Rep.")) %>%
+  mutate(country_name = if_else(country_name == "Korea, Rep.", "South Korea", country_name))
+
+#comparing population growth across countries
+ggplot(data = focus_data) +
+  geom_point(mapping = aes(x = year, y = SP.POP.GROW/100, color = country_name, group = 1)) +
+#  geom_line(mapping = aes(x = year, y = SP.POP.GROW/100, color = country_name, group = 3)) + #hmm..... confusion
+    labs(title = "Population Growth, 1960-2020", x = "Year", y = "Percent of annual population growth", caption = "Source: The World Bank", color = "Country") +
+  scale_x_discrete(breaks = seq(1960, 2020, by = 10)) +
+  scale_y_continuous(labels = scales::percent)
+
+ggplot(data = focus_data, mapping = aes(x = year)) +
+  geom_line(mapping = aes(y = SP.POP.GROW/100, color = "Total population growth"), group = 1) +
+  geom_line(mapping = aes(y = SP.URB.GROW/100, color = "Urban population growth"), group = 1) +
+  facet_grid(country_name ~.) +
+    labs(title = "Population Growth, 1960-2020", x = "Year", y = "Percent of annual population growth", caption = "Source: The World Bank", color = "Legend") +
+  scale_x_discrete(breaks = seq(1960, 2020, by = 10)) +
+  scale_y_continuous(labels = scales::percent) +
+  theme(legend.position = "bottom")
+
+#create scatter plot comparing urban pop growth to population density
+ggplot(focus_data, mapping = aes(x = SP.DYN.LE00.IN, y = EN.POP.DNST, color = country_name)) +
+  geom_line() 
 ```
 
 ## Session info
