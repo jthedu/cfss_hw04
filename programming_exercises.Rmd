@@ -79,66 +79,34 @@ map_dbl(~(.x)^2)
 ## Write a function to calculate length of sides in a right-triangle using the Pythagorean Theorem
 
 ```{r}
-#pythagorean
-pyth1 <- function(sides) {
-  if(length(sides) != 2) {
-    stop("provide only 2 values")
-  }
-   if(!is.numeric(sides)) {
+pyth1 <- function(a = NULL, b = NULL, c = NULL) {
+  sides <- sort(c(a, b, c)) #so sorting smallest to largest
+  if(!is.numeric(sides)) {
     stop("sides must be numeric") 
-  } else if (is.null(sides[a])) {
-    sqrt(c**2 - b**2)
-  } else if (is.null(sides[b])) {
-    sqrt(c**2 - a**2)
-  } else if (is.null(sides[c])) {
+  } else if(length(sides) != 2) {
+    stop("provide only 2 values")
+  } else if (is.null(a)) {              
+    sqrt(sides[2]**2 - sides[1]**2)   #satisfies pyth1( , 5, 4)
+  } else if (is.null(b)) {
+    sqrt(sides[2]^2 - sides[1]^2)       
+  } else if (is.null(c)) {
     sqrt(a**2 + b**2)
   }
-}
- 
-#from Google. https://rpubs.com/avbernat/617275
-  pythagorean <- function(triangle) {
-  a <- triangle[[1]]
-  b <- triangle[[2]]
-  c <- triangle[[3]]
-  # if(length(triangle) != 2) {
-   # stop("provide only 2 values")
-  #}
-  # if(!is.numeric(triangle)) {
-   # stop("sides must be numeric") 
-   #}
-  if (is.character(a)) {
-    side <- sqrt(c**2 - b**2)
-  }
-  else if (is.character(b)) {
-    side <- sqrt(c**2 - a**2)
-  }
-  else if (is.character(c)) {
-    side <- sqrt(a**2 + b**2)
-  }
-  return(side)
-}
-  
-  
-  
-  triangle1 = list(2,3, NA)
-  
-  
-  
-  
-  
-  a, b, c){
-  #stopifnot(is.numeric(a))
-  #stopifnot(missing(a | b | c)) #if_else?
-  if(missing(c)) {
-   sqrt(a^2 + b^2) 
-  } else if(missing(a)) {
-    sqrt(c^2 - b^2)
-  } else if(missing(b)) {
-  sqrt(c^2 - a^2)
-  }
-}
+} 
 
+#test examples
+pyth1(a = 3, b = 4, ) 
+pyth1(3, , 5)
+pyth1(5, , 4)
+pyth1(, 5, 4)
+pyth1(, 4, 5)
+
+#gives planned errors
+pyth1(3,4,5)
+pyth1("one", 2)
 ```
+
+If pyth1's inputs are not a AND b (wherein pyth1 will proceed to calculate the hypotenuse), then pyth1 knows that one of the sides it's been given is already the hypotenuse (the longest side).
 
 ## Session info
 

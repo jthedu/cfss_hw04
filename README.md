@@ -18,7 +18,7 @@ library(rcfss)
 library(readr)
 library(lubridate)
 library(ggthemes)
-library('scales')
+library(scales)
 library(forcats)
 
 ```
