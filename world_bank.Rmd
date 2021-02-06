@@ -11,6 +11,8 @@ library(tidyverse)
 library(ggthemes)
 library(ggridges)
 library(viridis)
+library(forcats)
+
 theme_set(theme_minimal())
 
 #don't do iteration w/in function, dummy!!
@@ -36,23 +38,16 @@ for(i in seq_along(diamonds)) {
 
 ```{r}
 import_tidydata <- function(file_name) {
- path = "./data_world_bank/"  #why this & not "~/data_world_bank/"
+ path = "./data_world_bank/"  
  read_csv(paste0(path, file_name), skip = 4) %>%
    rename(country_name = `Country Name`, country_code = `Country Code`, indicator_name = `Indicator Name`, indicator_code = `Indicator Code`) %>%
    filter(indicator_code %in% c("SP.POP.GROW", "SP.URB.GROW", "EN.POP.DNST", "SP.DYN.LE00.IN")) %>%
-   #selecting chosen 4 variables: population growth, urban population growth, population density, & life expectancy at birth. doing it here & not in final select of function so that function runs faster
+   #selecting chosen 4 variables: population growth, urban population growth, population density, & life expectancy at birth. doing it here & not in final select of function so that function (theoretically) runs faster
    select(-c(country_code, indicator_name)) %>%
    pivot_longer(cols = `1960`:`2019`, names_to = "year", values_to = "values") %>%
    pivot_wider(names_from = indicator_code, values_from = values) %>%
    select(-X65)
 }
-
-#ask about dropping X65 earlier - could you do a drop_na in a pivot_longer or something? "values_drop_na" - is it okay or would I drop needed info? AFTER TESTING, warning pops up due to read_csv
-#https://github.com/tidyverse/readr/issues/1103 - apparently, just add suppressWarnings()??
-
-# someone else said to do {r, message = FALSE} - but idk if that'd work for masterdata. https://github.com/tidyverse/readr/issues/954 
-
-#ASK TA IF THIS IS GOOD IDEA (seems ok in this case but check)
 
 #This is what I used to check my work while creating the function.
 sampledfname <- "API_ABW_DS2_en_csv_v2_1226885.csv"
@@ -62,7 +57,7 @@ sampledf <- import_tidydata(sampledfname)
 ## Import the data
 
 ```{r, message = FALSE}
-# is IT OK FOR ME TO HAVE MESSAGE = FALSE above to cut down on printing the same warning message 200+ times?
+# used message = FALSE to avoid pages of same message saying it created a new column [X65], as seen above
 masterdata <- list.files(path = "./data_world_bank/", pattern = "\\.csv$") %>% #could also write "*.csv"
 map(import_tidydata) %>%
   reduce(rbind) %>%
@@ -71,98 +66,37 @@ map(import_tidydata) %>%
 ```
 
 ## Explore the data
-I am focusing my analysis on Japan, China, & S. Korea.
+# **East Asian countries** 
+My initial analysis focuses on 3 East Asian countries: China, Japan, and South Korea.
 ```{r}
 focus_data <- masterdata %>%
-  filter(country_name %in% c("Japan", "China", "South Korea")) %>%
-#  mutate(country_name = if_else(country_name == "Korea, Rep.", "South Korea", country_name)) %>% #did this in earlier step
+  filter(country_name %in% c("China", "Japan", "South Korea")) %>%
   rename(totalpopgrow = `SP.POP.GROW`, urbpopgrow = `SP.URB.GROW`, popdensity = `EN.POP.DNST`, life_expectancy = `SP.DYN.LE00.IN`)
 
-### mostly looking at population variables
-
-#comparing population growth across countries
-ggplot(data = focus_data) +
-  geom_point(mapping = aes(x = year, y = totalpopgrow/100, color = country_name, group = 1)) +
-    labs(title = "Total Population Growth, 1960-2020", x = "Year", y = "Percent of total annual population growth", caption = "Source: The World Bank", color = "Country") +
-  scale_x_discrete(breaks = seq(1960, 2020, by = 10)) +
-  scale_y_continuous(labels = scales::percent)
-
-#same as above, but with a line!!!
-ggplot(data = focus_data) +
-  geom_line(mapping = aes(x = year, y = totalpopgrow/100, color = country_name, group = country_name)) + 
-    labs(title = "Total Population Growth, 1960-2020", x = "Year", y = "Percent of total annual population growth", caption = "Source: The World Bank", color = "Country") +
-  scale_x_discrete(breaks = seq(1960, 2020, by = 10)) +
-  scale_y_continuous(labels = scales::percent)
-
-#compare urban vs total pop growth across countries
-ggplot(data = focus_data, mapping = aes(x = year)) +
-  geom_line(mapping = aes(y = totalpopgrow/100, color = "Total population growth"), group = 1) +
-  geom_line(mapping = aes(y = urbpopgrow/100, color = "Urban population growth"), group = 1) +
-  facet_grid(country_name ~.) +
-    labs(title = "Urban & Total Population Growth, 1960-2020", x = "Year", y = "Percent of annual population growth", caption = "Source: The World Bank", color = "Legend") +
-  scale_x_discrete(breaks = seq(1960, 2020, by = 10)) +
-  scale_y_continuous(labels = scales::percent) +
-  theme(legend.position = "bottom")
+focus_data %>%
+  group_by(country_name) %>%
+  drop_na(totalpopgrow:life_expectancy) %>%
+  summarize(
+    mean(totalpopgrow), mean(urbpopgrow), mean(popdensity), mean(life_expectancy)
+    ) %>%
+  kable(caption = "Averages of indicators across East Asian countries, from 1960-2020", col.names = c("Country", "Total population growth (%)", "Urban population growth (%)", "Population density (per sq. km)", "Life expectancy (yrs)"), digits = 2)
 ```
 
-```{r}
-## looking @ life expectancy
+	For all 3 selected East Asian countries, the table shows the average values of the indicators of interest from 1960 to 2020. On average, China experienced more population growth – both total and urban – over the years. However, South Korea has the biggest average population density, nearly 4x China’s average over the years. Japan had the highest average life expectancy at birth, roughly 78 years, which is 10 years more than China’s average life expectancy.
 
-### NEED to have some tables & descriptive stats. could create table comparing median life expectancy, total pop growth, & pop density across the yrs (yr wouldn't be a var in this table itself) -- can do individual countries or regions
 
-## tbh not sure if it's the best idea to make a boxplot/ridgeplot of life expectancy & pop density cuz it's ordered by time
-# if really wanna try hard: could filter N American & E Asian countries. mutate var to indicate which region they belong to. then compare their life expectancies/pop densities (& don't think i'd use yr as a factor there)
-
-#boxplot of life expectancy across country
-ggplot(data = focus_data, mapping = aes(x = country_name, y = life_expectancy, fill = country_name)) +
-  geom_violin() +
-  geom_boxplot(width=0.1, color="grey", alpha=0.2) +
-    labs(title = "Life expectancy in selected East Asian countries", x = "", y = "Life expectancy at birth (yrs)", caption = "Source: The World Bank", fill = "Country") +
-  scale_y_continuous(limits = c(40, 90)) +
-  theme(legend.position = "none")
-#Japan has the highest life expectancy. Korea and China seem to have similar median life expectancies, but China is much more left skewed. 
-
-ggplot(data = focus_data, mapping = aes(x = life_expectancy, y = country_name, fill = country_name)) +
-  geom_density_ridges(alpha = 0.6) +
-  scale_fill_viridis(discrete = TRUE) +
-  scale_color_viridis(discrete = TRUE) +
-    labs(title = "Life expectancy in selected East Asian countries", x = "Life expectancy at birth (yrs)", y = "", caption = "Source: The World Bank", fill = "Country") +
-#  scale_x_continuous(limits = c(40, 100)) +
-  theme(legend.position = "none")
-
-#try pop density
-ggplot(data = focus_data, mapping = aes(x = popdensity, y = country_name, fill = country_name)) +
-  geom_density_ridges(alpha = 0.6, stat="binline", bins=20) +
-  scale_fill_viridis(discrete = TRUE) +
-  scale_color_viridis(discrete = TRUE) +
-    labs(title = "Population density in selected East Asian countries", x = "Population density", y = "", caption = "Source: The World Bank", fill = "Country") +
-#  scale_x_continuous(limits = c(40, 100)) +
-  theme(legend.position = "none")
-
-#create scatter plot comparing life expectancy to population density - 
-#### can probs DELETE these cuz i have regional data for it
-ggplot(focus_data, mapping = aes(x = life_expectancy, y = popdensity, color = country_name)) +
-  geom_line() 
-
-ggplot(focus_data, mapping = aes(x = year, y = popdensity, color = country_name, group = country_name)) +
-  geom_line() 
-
-ggplot(focus_data, mapping = aes(x = year, y = life_expectancy, color = country_name, group = country_name)) +
-  geom_line() 
-
-```
-
+# **3 geographical regions (9 total countries)** 
+I started my analysis just focusing on the 3 East Asian countries above, but I realized I could look at *regions*. I focused on 3 geographical regions: East Asia (same as above), North America (Mexico, Canada, US), and Western Europe (France, Germany, UK). 
 ```{r}
 #compare geographical regions
-#E Asia (focusdata), N America, Europe (United Kingdom, France, Germany)
+require(forcats)
 
-#could either create one dataset from the start & mutate new region var. or create 3 separate dataframes, add a region var w/ correct value & bind rows
+e_asia <- c("China", "Japan", "South Korea")
+n_ame <- c("Mexico", "Canada", "United States")
+w_eur <- c("France", "Germany", "United Kingdom")
 
-e_asia <- c("Japan", "China", "South Korea")
-n_ame <- c("United States", "Mexico", "Canada")
-w_eur <- c("United Kingdom", "France", "Germany")
-
-region_level <- c("East Asia", "North America", "Western Europe")
+region_level <- c(e_asia, n_ame, w_eur)
+  #"East Asia", "North America", "Western Europe")
 
 regional_data <- masterdata %>%
   filter(country_name %in% c(e_asia, n_ame, w_eur)) %>%
@@ -171,40 +105,8 @@ regional_data <- masterdata %>%
     country_name %in% e_asia ~ "East Asia",
     country_name %in% n_ame ~ "North America",
     country_name %in% w_eur ~ "Western Europe"
-  )) #%>%
-  #mutate(country_name = fct_relevel(country_name, region_level))
-#idk how to group boxplots/violins by region. dunno if it's worth it either
-
-# boxplot of life_expectancy
-regional_data %>%
-  ggplot(mapping = aes(x = country_name, y = life_expectancy, fill = region)) +
-  geom_violin() +
-  geom_boxplot(width=0.1, color="grey", alpha=0.2) +
-    labs(title = "Life expectancy in selected regions", x = "", y = "Life expectancy at birth (yrs)", caption = "Source: The World Bank", fill = "Region") +
-  scale_y_continuous(limits = c(40, 90)) +
-  theme(legend.position = "bottom") +
-  coord_flip()
-
-regional_data %>%
-ggplot(mapping = aes(x = totalpopgrow, y = country_name, fill = region)) +
-  geom_density_ridges(alpha = 0.6) +
-  scale_fill_viridis(discrete = TRUE) +
-  scale_color_viridis(discrete = TRUE) +
-    labs(title = "Total population growth rates in selected regions", x = "Total population growth rates (%)", y = "", caption = "Source: The World Bank", fill = "Region") +
-#  scale_x_continuous(limits = c(40, 100)) +
-  theme(legend.position = "bottom")
-## seems that typically, W Eur has had higher total pop growth rates.
-
-
-## could delete this
-regional_data %>%
-  ggplot(mapping = aes(x = country_name, y = totalpopgrow, fill = region)) +
-  geom_violin() +
-  geom_boxplot(width=0.1, color="grey", alpha=0.2) +
-    labs(title = "Total population growth in selected regions", x = "", y = "Total population growth (%)", caption = "Source: The World Bank", fill = "Region") +
-#  scale_y_continuous(limits = c(40, 90)) +
-  theme(legend.position = "bottom") +
-  coord_flip()
+  )) %>%
+  mutate(country_name = factor(country_name, levels = region_level), country_name = fct_rev(country_name))
 
 #table of mean indicators across region
 regional_data %>%
@@ -213,28 +115,68 @@ regional_data %>%
   summarize(
     mean(totalpopgrow), mean(urbpopgrow), mean(popdensity), mean(life_expectancy)
     ) %>%
-  kable(caption = "Averages of indicators across region, from 1960-2020", col.names = c("Region", "Total population growth (%)", "Urban population growth (%)", "Population density (per sq. km)", "Life expectancy (yrs)"), digits = 3)
+  kable(
+    caption = "Averages of indicators across region, from 1960-2020", 
+    col.names = c("Region", "Total population growth (%)", "Urban population growth (%)", "Population density (per sq. km)", "Life expectancy (yrs)"), 
+    digits = 2)
+
+# violinplot of life_expectancy - all countries
+regional_data %>%
+  ggplot(mapping = aes(x = country_name, y = life_expectancy, fill = region)) +
+  geom_violin() +
+  geom_boxplot(width=0.1, color="grey", alpha=0.2) +
+    labs(title = "Life expectancy in selected countries, 1960-2020", x = "", y = "Life expectancy at birth (yrs)", caption = "Source: The World Bank", fill = "Region") +
+  theme(legend.position = "bottom") +
+  coord_flip()
+
+#violin plot of regional life expectancy
+ggplot(data = regional_data, mapping = aes(x = region, y = life_expectancy, fill = region)) +
+  geom_violin() +
+  geom_boxplot(width=0.1, color="grey", alpha=0.2) +
+    labs(title = "Annual life expectancy in selected regions, 1960-2020", x = "", y = "Life expectancy at birth (yrs)", caption = "Source: The World Bank", fill = "Country") +
+  scale_y_continuous(limits = c(40, 90)) +
+  theme(legend.position = "none")
+
+#ridged population density - all countries
+ggplot(data = regional_data, mapping = aes(x = popdensity, y = country_name, fill = region)) +
+  geom_density_ridges(alpha = 0.6) +
+  scale_fill_viridis(discrete = TRUE) +
+  scale_color_viridis(discrete = TRUE) +
+    labs(title = "Population density in selected countries, 1960-2020", x = "Population density", y = "", caption = "Source: The World Bank", fill = "Country") +
+  theme(legend.position = "none")
+
+#ridged pop density - 
+ggplot(data = regional_data, mapping = aes(x = popdensity, y = region, fill = region)) +
+  geom_density_ridges(alpha = 0.6) +
+  scale_fill_viridis(discrete = TRUE) +
+  scale_color_viridis(discrete = TRUE) +
+    labs(title = "Population density in selected regions, 1960-2020", x = "Population density", y = "", caption = "Source: The World Bank", fill = "Country") +
+  theme(legend.position = "none")
+```
+``` {r}
+#line graphs of 3 regions, tracking variables over time
 
 regional_data %>%
-  ggplot(mapping = aes(x = year, y = popdensity, color = country_name, group = country_name)) +
+  ggplot(mapping = aes(x = year, y = popdensity, color = fct_rev(country_name), group = country_name)) +
   geom_line() +
   facet_wrap(region ~ .)  +
-  labs(title = "Population density, 1960-2020", subtitle = "In selected countries", x = "Year", y = "Population density (people per sq. km)", caption = "Source: The World Bank", color = "Country") +
+  labs(title = "Annual population density, 1960-2020", subtitle = "In selected countries", x = "Year", y = "Population density (people per sq. km)", caption = "Source: The World Bank", color = "Country") +
   scale_x_discrete(breaks = seq(1960, 2020, by = 10)) +
   theme(legend.position = "bottom")
 #E Asian countries clearly have higher pop densities, while N American countries have the lowest out of this batch. still see an increase for all countries, though Germany & Canada have stayed pretty constant over time
 
 regional_data %>%
-  ggplot(mapping = aes(x = year, y = totalpopgrow, color = country_name, group = country_name)) +
+  ggplot(mapping = aes(x = year, y = totalpopgrow/100, color = fct_rev(country_name), group = country_name)) +
   geom_line() +
   facet_wrap(region ~ .)  +
-  labs(title = "Total population growth, 1960-2020", subtitle = "In selected countries", x = "Year", y = "Total population growth (annual %)", caption = "Source: The World Bank", color = "Country") +
+  labs(title = "Annual total population growth, 1960-2020", subtitle = "In selected countries", x = "Year", y = "Total population growth", caption = "Source: The World Bank", color = "Country") +
   scale_x_discrete(breaks = seq(1960, 2020, by = 10)) +
+  scale_y_continuous(labels = scales::percent) +
   theme(legend.position = "bottom")
 #see a slowing in total population growth, but still positive for most part
 
 regional_data %>%
-  ggplot(mapping = aes(x = year, y = life_expectancy, color = country_name, group = country_name)) +
+  ggplot(mapping = aes(x = year, y = life_expectancy, color = fct_rev(country_name), group = country_name)) +
   geom_line() +
   facet_wrap(region ~ .)  +
   labs(title = "Life expectancy, 1960-2020", subtitle = "In selected countries", x = "Year", y = "Life expectancy, at birth (yrs)", caption = "Source: The World Bank", color = "Country") +
@@ -242,6 +184,15 @@ regional_data %>%
   theme(legend.position = "bottom")
 # can see that Western Europe's life expectancies have roughly stayed together, whereas North American countries were slightly diverged (though getting closer now) and East Asian countries are even more divergent. In all regions here, we have seen an increase in life expectancy over time, with East Asian countries experiencing the most dramatic change (as China and South Korea started with noticeably lower expectancies). Today, we see roughly similar life expectancies, hovering around 80 yrs. Japan and South Korea have actually surpassed the North American and Western European countries, while China and Mexico lag behind.
 #### add in insights from VIOLIN PLOT (compare medians, talk about skew & sample size/density)
+
+ggplot(data = regional_data, mapping = aes(x = year)) +
+  geom_line(mapping = aes(y = totalpopgrow/100, color = "Total population growth"), group = 1) +
+  geom_line(mapping = aes(y = urbpopgrow/100, color = "Urban population growth"), group = 1) +
+  facet_wrap(fct_rev(country_name) ~.) +
+    labs(title = "Urban & Total Population Growth, 1960-2020", x = "Year", y = "Percent of annual population growth", caption = "Source: The World Bank", color = "Legend") +
+  scale_x_discrete(breaks = seq(1960, 2020, by = 10)) +
+  scale_y_continuous(labels = scales::percent) +
+  theme(legend.position = "bottom")
 
 ```
 

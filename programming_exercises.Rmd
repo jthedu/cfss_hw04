@@ -84,9 +84,9 @@ pyth1 <- function(a = NULL, b = NULL, c = NULL) {
   if(!is.numeric(sides)) {
     stop("sides must be numeric") 
   } else if(length(sides) != 2) {
-    stop("provide only 2 values")
+    stop("provide 2 values")
   } else if (is.null(a)) {              
-    sqrt(sides[2]**2 - sides[1]**2)   #satisfies pyth1( , 5, 4)
+    sqrt(sides[2]**2 - sides[1]**2)   #satisfies pyth1( , 5, 4). 
   } else if (is.null(b)) {
     sqrt(sides[2]^2 - sides[1]^2)       
   } else if (is.null(c)) {
@@ -94,15 +94,19 @@ pyth1 <- function(a = NULL, b = NULL, c = NULL) {
   }
 } 
 
-#test examples
-pyth1(a = 3, b = 4, ) 
-pyth1(3, , 5)
+#test examples. 
+#if missing value is not c, pyth1 function successfully treats the largest side provided as the hypotenuse
+pyth1(a = 3, b = 4, c = ) 
+pyth1(5, 4, )
+pyth1(5, 4)
+pyth1(3, b = , 5)
 pyth1(5, , 4)
-pyth1(, 5, 4)
+pyth1(a = , 5, 4)
 pyth1(, 4, 5)
 
 #gives planned errors
 pyth1(3,4,5)
+pyth1(1)
 pyth1("one", 2)
 ```
 
