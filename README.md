@@ -15,10 +15,11 @@ library(tidyverse)
 library(gapminder)
 library(rcfss)
 
-library(readr)
-library(lubridate)
 library(ggthemes)
-library(scales)
+library(ggridges)
+library(viridis)
 library(forcats)
+library(readr)
+library(knitr)
 
 ```
