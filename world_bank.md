@@ -51,8 +51,17 @@ other.
 import_tidydata <- function(file_name) {
  path = "./data_world_bank/"  
  read_csv(paste0(path, file_name), skip = 4) %>%
-   rename(country_name = `Country Name`, country_code = `Country Code`, indicator_name = `Indicator Name`, indicator_code = `Indicator Code`) %>%
-   filter(indicator_code %in% c("SP.POP.GROW", "SP.URB.GROW", "EN.POP.DNST", "SP.DYN.LE00.IN")) %>%
+   rename(
+     country_name = `Country Name`, 
+     country_code = `Country Code`, 
+     indicator_name = `Indicator Name`, 
+     indicator_code = `Indicator Code`
+     ) %>%
+   filter(indicator_code %in% c(
+     "SP.POP.GROW", 
+     "SP.URB.GROW", 
+     "EN.POP.DNST", 
+     "SP.DYN.LE00.IN")) %>%
    #selecting chosen 4 variables here & not in final select of function so that function (theoretically) runs faster
    select(-c(country_code, indicator_name)) %>%
    pivot_longer(cols = `1960`:`2019`, names_to = "year", values_to = "values") %>%
@@ -102,7 +111,10 @@ South Korea.
 ``` r
 focus_data <- masterdata %>%
   filter(country_name %in% c("China", "Japan", "South Korea")) %>%
-  rename(totalpopgrow = `SP.POP.GROW`, urbpopgrow = `SP.URB.GROW`, popdensity = `EN.POP.DNST`, life_expectancy = `SP.DYN.LE00.IN`)
+  rename(totalpopgrow = `SP.POP.GROW`, 
+         urbpopgrow = `SP.URB.GROW`, 
+         popdensity = `EN.POP.DNST`, 
+         life_expectancy = `SP.DYN.LE00.IN`)
 
 focus_data %>%
   group_by(country_name) %>%
@@ -112,7 +124,12 @@ focus_data %>%
     ) %>%
   knitr::kable(
     caption = "Averages of indicators across East Asian countries, from 1960-2020", 
-    col.names = c("Country", "Total population growth (%)", "Urban population growth (%)", "Population density (people per sq. km)", "Life expectancy at birth (yrs)"), 
+    col.names = c(
+      "Country", 
+      "Total population growth (%)", 
+      "Urban population growth (%)", 
+      "Population density (people per sq. km)", 
+      "Life expectancy at birth (yrs)"), 
     digits = 2)
 ```
 
@@ -164,7 +181,8 @@ regional_data <- masterdata %>%
     country_name %in% n_ame ~ "North America",
     country_name %in% w_eur ~ "Western Europe"
   )) %>%
-  mutate(country_name = factor(country_name, levels = region_level), country_name = fct_rev(country_name))
+  mutate(country_name = factor(country_name, levels = region_level), 
+         country_name = fct_rev(country_name))
 
 #table of mean indicators across region
 regional_data %>%
@@ -175,7 +193,12 @@ regional_data %>%
     ) %>%
   knitr::kable(
     caption = "Averages of indicators across region, from 1960-2020", 
-    col.names = c("Region", "Total population growth (%)", "Urban population growth (%)", "Population density (people per sq. km)", "Life expectancy at birth (yrs)"), 
+    col.names = c(
+      "Region", 
+      "Total population growth (%)", 
+      "Urban population growth (%)", 
+      "Population density (people per sq. km)", 
+      "Life expectancy at birth (yrs)"), 
     digits = 2)
 ```
 
