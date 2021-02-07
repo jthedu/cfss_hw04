@@ -12,17 +12,6 @@ library(knitr)
 library(ggthemes)
 
 theme_set(theme_minimal())
-
-#not relevant - class exercises
-mean_mtcars <- vector("numeric", length = ncol(mtcars))
-for(i in seq_along(mtcars)) {
-  output[[i]] <- mean(mtcars[[i]])
-}
-
-max_diamonds <- vector("numeric", length = ncol(diamonds))
-for(i in seq_along(diamonds)) {
-  output[[i]] <- max(diamonds[[i]])
-}
 ```
 
 ## Compute the number of unique values in each column of `iris`
@@ -78,7 +67,9 @@ map_dbl(~(.x)^2)
 
 ## Write a function to calculate length of sides in a right-triangle using the Pythagorean Theorem
 
-```{r}
+```{r, error = TRUE}
+#setting error = TRUE to print pyth1's error examples
+
 pyth1 <- function(a = NULL, b = NULL, c = NULL) {
   sides <- sort(c(a, b, c)) #so sorting smallest to largest
   if(!is.numeric(sides)) {
@@ -99,9 +90,9 @@ pyth1 <- function(a = NULL, b = NULL, c = NULL) {
 pyth1(a = 3, b = 4, c = ) 
 pyth1(5, 4, )
 pyth1(5, 4)
-pyth1(3, b = , 5)
+pyth1(a = 3, b = , c = 5)
 pyth1(5, , 4)
-pyth1(a = , 5, 4)
+pyth1(a = , b = 5, c = 4)
 pyth1(, 4, 5)
 
 #gives planned errors
@@ -110,7 +101,7 @@ pyth1(1)
 pyth1("one", 2)
 ```
 
-If pyth1's inputs are not a AND b (wherein pyth1 will proceed to calculate the hypotenuse), then pyth1 knows that one of the sides it's been given is already the hypotenuse (the longest side).
+If pyth1's inputs are not both a AND b (wherein pyth1 will proceed to calculate the hypotenuse), then pyth1 knows that one of the sides it's been given is already the hypotenuse (the longest side).
 
 ## Session info
 
