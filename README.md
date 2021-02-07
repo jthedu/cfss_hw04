@@ -1,10 +1,10 @@
-# Homework 04: Programming (Julia Du)
+# Homework 04: Programming in R (Julia Du)
 
-Here is my [programming exercises source code](programming_exercises.Rmd) & my [dadmom rendered report](programming_exercises.md).
-Here also is my [world bank source code](world_bank.Rmd) & my [scotus rendered report](world_bank.md).
+Here is my [programming exercises source code](programming_exercises.Rmd) & my [rendered report](programming_exercises.md).
+Here also is my [world bank source code](world_bank.Rmd) & my [rendered report](world_bank.md).
 
 
-Detailed instructions for this homework assignment are [here](https://cfss.uchicago.edu/homework/explore-data/).
+Detailed instructions for this homework assignment are [here](https://cfss.uchicago.edu/homework/programming/).
 
 ## Required packages
 
